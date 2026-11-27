@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Direct hybrid verify of the FIXED 09-1 ALL k3 models (no re-selection): L0 predictor -> C3S MME at predict time.
-Two training protocols, both eval on 1993-2024 (C3S overlap):
-  A) 1993-train : fit & LOO within 1993-2024 (detrend over 1993-2024). [apples-to-apples, keep]
-  B) 1979-train : fit beta on 1979-2024 observed (LOO leaves out the eval year -> 45yr fit); predict 1993-2024.
-     L0 C3S calibrated to observed-L0 distribution over the 1993-2024 overlap (mean+std match; period scales differ).
+Two training protocols, both eval on 1993-2016 (C3S overlap):
+  A) 1993-train : fit & LOO within 1993-2016 (detrend over 1993-2016). [apples-to-apples, keep]
+  B) 1979-train : fit beta on 1979-2024 observed (LOO leaves out the eval year -> 45yr fit); predict 1993-2016.
+     L0 C3S calibrated to observed-L0 distribution over the 1993-2016 overlap (mean+std match; period scales differ).
 Lead terms always observed; coeffs always fit on OBSERVED. Out: console + data/mlr_pp_fixed_era5.csv."""
 import numpy as np, pandas as pd, xarray as xr
 from pathlib import Path
@@ -24,10 +24,10 @@ def pred_series(name):
 d=np.load(D/"predictor_accepted_era5.npz",allow_pickle=True)
 G=d["gid"].astype(int); OBS=d["obs_ts"]; LEAD=d["lead"].astype(int); OBSy={int(y):i for i,y in enumerate(d["years"].astype(int))}
 gi={int(g):i for i,g in enumerate(G)}
-mme=pd.read_csv(D/"c3s_L0_mme_ts_era5.csv"); MME={}
-for _,r in mme.iterrows(): MME.setdefault(int(r.gid),{})[int(r.year)]=float(r.mme_anom)
-MODELS={"EC_day":[10,191,132],"EW_day":[218,313,265],"CDHD":[500,479,682]}
-Y46=np.arange(1979,2025); E93=np.arange(1993,2025)
+mme=pd.read_csv(D/"c3s_mme_L0_djf.csv"); MME={}
+for _,r in mme.iterrows(): MME.setdefault(int(r.gid),{})[int(r.year)]=float(r.value)
+MODELS={"EC_day":[10,191,132],"EW_day":[218,313,265]}
+Y46=np.arange(1979,2025); E93=np.arange(1993,2017)
 rows=[]
 for nm,gids in MODELS.items():
     ym=pred_series(nm); L0=[g for g in gids if LEAD[gi[g]]==0]
@@ -36,7 +36,7 @@ for nm,gids in MODELS.items():
     Xo=np.column_stack([np.ones(len(E93))]+[detr(OBS[gi[g]][i93]) for g in gids])
     Xh=np.column_stack([np.ones(len(E93))]+[(detr(np.array([MME[g][Y] for Y in E93])) if g in L0 else detr(OBS[gi[g]][i93])) for g in gids])
     accA_obs=pploo(Xo,Xo,yA); accA_hyb=pploo(Xo,Xh,yA)
-    # ---- B) 1979-train, predict 1993-2024 (explicit LOO) ----
+    # ---- B) 1979-train, predict 1993-2016 (explicit LOO) ----
     y46=detr(np.array([ym[Y] for Y in Y46])); Xf46={g:detr(OBS[gi[g]][[OBSy[Y] for Y in Y46]]) for g in gids}
     pos={int(Y):k for k,Y in enumerate(Y46)}
     cal={}
@@ -53,4 +53,4 @@ for nm,gids in MODELS.items():
         A_obs93=round(accA_obs,3),A_hyb93_C3S=round(accA_hyb,3),
         B_obs_tr79=round(accB_obs,3),B_hyb_tr79_C3S=round(accB_hyb,3)))
 res=pd.DataFrame(rows); print(res.to_string(index=False),flush=True); res.to_csv(D/"mlr_pp_fixed_era5.csv",index=False)
-print("[saved] mlr_pp_fixed_era5.csv  (eval 1993-2024; A=train93, B=train79)",flush=True)
+print("[saved] mlr_pp_fixed_era5.csv  (eval 1993-2016; A=train93, B=train79)",flush=True)
