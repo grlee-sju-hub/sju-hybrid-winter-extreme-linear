@@ -1,6 +1,6 @@
 # SHECAST · Winter Extreme (Linear / Statistical–Dynamical)
 
-**SHECAST** (*SJU Hybrid Extreme foreCast*) is a statistical–dynamical seasonal-prediction framework for Korean climate extremes. **This repository is the linear (MLR) model for winter extremes.**
+**SHECAST** (*Statistical Hybrid Ensemble foreCast*) is a hybrid statistical–dynamical seasonal-forecast system that targets **climate variables of low direct dynamical predictability** (air quality, blocking, warm/cold extremes), bridging them to a **multi-model ensemble**'s skilfully-forecast large-scale fields. **This repository is the linear (MLR) core for Korean winter extremes.**
 
 Statistical–dynamical (multiple linear regression, **MLR**) seasonal prediction of **Korean winter extreme-cold days (EC) and extreme-warm days (EW)** over the December–January–February (DJF) season.
 
